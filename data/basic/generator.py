@@ -16,8 +16,9 @@ def generate_hungarian_plate():
         consonants = "BCDFGHJKLMNPQRSTVWXYZ"
         letters= fake.random_element([vowels, consonants])
         first_two = fake.lexify(text="??", letters=letters)
+        forbidden_pairs = ["CS", "GY", "LY", "NY", "SZ", "TY", "ZS"]
 
-        while first_two in ("CS", "GY", "LY", "NY", "SZ", "TY", "ZS"):
+        while first_two in forbidden_pairs:
             first_two = fake.lexify(text="??", letters=letters)
 
         return f'{first_two}-{fake.bothify(text="??", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")}-{number}'
