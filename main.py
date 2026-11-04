@@ -1,4 +1,5 @@
 from data.basic.model_dataclasses import Car, Service
+from data.basic.generator import generate_hungarian_plate
 
 car = Car(
     plate="JVF-145",
@@ -16,3 +17,5 @@ service = Service(
     cost=21000
 )
 print(service)
+
+print(generate_hungarian_plate())
