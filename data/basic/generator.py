@@ -1,5 +1,6 @@
 from faker import Faker
 from faker_vehicle import VehicleProvider
+from data.basic.model_dataclasses import Car
 
 fake = Faker("hu_HU")
 fake.add_provider(VehicleProvider)
@@ -22,3 +23,16 @@ def generate_hungarian_plate():
             first_two = fake.lexify(text="??", letters=letters)
 
         return f'{first_two}-{fake.bothify(text="??", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")}-{number}'
+
+def generate_cars(n:int)->list:
+    cars = []
+    for _ in range(n):
+        car = Car(
+            plate = generate_hungarian_plate(),
+            type = fake.vehicle_make_model(),
+            year = fake.random_int(min=1990, max=2026),
+            automatic = fake.boolean()
+        )
+        cars.append(car)
+
+    return cars

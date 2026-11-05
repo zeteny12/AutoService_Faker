@@ -1,21 +1,25 @@
 from data.basic.model_dataclasses import Car, Service
-from data.basic.generator import generate_hungarian_plate
+from data.basic.generator import generate_hungarian_plate, generate_cars
 
-car = Car(
+"""car = Car(
     plate="JVF-145",
     type="Suzuki Swift",
     year=2005,
     automatic=False
 )
-print(car)
+print(car)"""
 
-service = Service(
+"""service = Service(
     id=1,
     car_plate="JVF-145",
     date="2026-11-04",
     description="Féktárcsa",
     cost=21000
 )
-print(service)
+print(service)"""
 
-print(generate_hungarian_plate())
+#print(generate_hungarian_plate())
+
+cars = generate_cars(5)
+for car in cars:
+    print(car)
