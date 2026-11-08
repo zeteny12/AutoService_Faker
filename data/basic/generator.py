@@ -1,6 +1,7 @@
 from faker import Faker
 from faker_vehicle import VehicleProvider
-from data.basic.model_dataclasses import Car
+from data.basic.model_dataclasses import Car, Service
+from datetime import date, timedelta
 
 fake = Faker("hu_HU")
 fake.add_provider(VehicleProvider)
@@ -42,3 +43,42 @@ def generate_cars(n:int)->list:
         cars.append(car)
 
     return cars
+
+def generate_services(cars)->list:
+    services = []
+    next_id = 1
+
+    service_types = [
+        "Olajcsere",
+        "Féktárcsacsere",
+        "Futóműjavítás",
+        "Kuplungcsere",
+        "Gumicsere",
+        "Vezérléscsere",
+        "Akkumulátorcsere"
+    ]
+
+    for car in cars:
+        service_count = fake.random_int(min=1, max=3)
+
+        for _ in range(service_count):
+            service_date = fake.date_between(
+                start_date=max(
+                    date(car.year, 1, 1),
+                    date.today() - timedelta(days=5 * 365)
+                ),
+                end_date="today"
+            ).isoformat()
+
+            service = Service(
+                id = next_id,
+                car_plate = car.plate,
+                date = service_date,
+                description = fake.random_element(service_types),
+                cost = fake.random_int(min=5_000, max=200_000)
+            )
+            next_id += 1
+            services.append(service)
+
+
+    return services
