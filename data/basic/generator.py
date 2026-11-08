@@ -26,9 +26,15 @@ def generate_hungarian_plate():
 
 def generate_cars(n:int)->list:
     cars = []
+    plates = set()
     for _ in range(n):
+        plate = generate_hungarian_plate()
+        while plate in plates:
+            plate = generate_hungarian_plate()
+        plates.add(plate)
+
         car = Car(
-            plate = generate_hungarian_plate(),
+            plate = plate,
             type = fake.vehicle_make_model(),
             year = fake.random_int(min=1990, max=2026),
             automatic = fake.boolean()
