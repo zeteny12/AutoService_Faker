@@ -6,7 +6,7 @@ from datetime import date, timedelta
 fake = Faker("hu_HU")
 fake.add_provider(VehicleProvider)
 
-def generate_hungarian_plate():
+def generate_hungarian_plate()->str:
     plate_type = fake.random_element(["old", "new"])
     number = fake.random_int(min=1, max=999)
     number = f"{number:03d}"
@@ -25,7 +25,7 @@ def generate_hungarian_plate():
 
         return f'{first_two}-{fake.bothify(text="??", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")}-{number}'
 
-def generate_cars(n:int)->list:
+def generate_cars(n:int)->list[Car]:
     cars = []
     plates = set()
     for _ in range(n):
@@ -37,14 +37,14 @@ def generate_cars(n:int)->list:
         car = Car(
             plate = plate,
             type = fake.vehicle_make_model(),
-            year = fake.random_int(min=1990, max=2026),
+            year = fake.random_int(min=1990, max=date.today().year),
             automatic = fake.boolean()
         )
         cars.append(car)
 
     return cars
 
-def generate_services(cars)->list:
+def generate_services(cars: list[Car])->list[Service]:
     services = []
     next_id = 1
 
@@ -82,3 +82,9 @@ def generate_services(cars)->list:
 
 
     return services
+
+def generate_data(n:int)->tuple[list[Car], list[Service]]:
+    cars = generate_cars(n)
+    services = generate_services(cars)
+
+    return cars, services
