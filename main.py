@@ -1,6 +1,7 @@
 from data.basic.generator import generate_data
 from data.basic.handler.csv_dict import write_cars_csv, write_services_csv, read_cars_csv, read_services_csv
 from data.basic.handler.my_json import write_cars_json, write_services_json, read_cars_json, read_services_json
+from data.basic.handler.xlsx import write_data_xlsx, read_data_xlsx
 
 cars, services = generate_data(5)
 
@@ -21,18 +22,31 @@ cars, services = generate_data(5)
 # print(all(service.car_plate in plates for service in loaded_services))
 
 
-write_cars_json(cars, path = "./json_files")
-write_services_json(services, path = "./json_files")
+# write_cars_json(cars, path = "./json_files")
+# write_services_json(services, path = "./json_files")
+#
+# loaded_cars_json = read_cars_json("./json_files")
+# print(cars == loaded_cars_json)
+# for car in loaded_cars_json:
+#     print(car)
+#
+# loaded_services_json = read_services_json("./json_files")
+# print(services == loaded_services_json)
+# for service in loaded_services_json:
+#     print(service)
+#
+# plates = set(car.plate for car in loaded_cars_json)
+# print(all(service.car_plate in plates for service in loaded_services_json))
 
-loaded_cars_json = read_cars_json("./json_files")
-print(cars == loaded_cars_json)
-for car in loaded_cars_json:
+
+write_data_xlsx(cars, services, "xlsx_files")
+loaded_cars_xlsx, loaded_services_xlsx = read_data_xlsx("xlsx_files")
+
+print(cars == loaded_cars_xlsx)
+print(services == loaded_services_xlsx)
+
+for car in loaded_cars_xlsx:
     print(car)
 
-loaded_services_json = read_services_json("./json_files")
-print(services == loaded_services_json)
-for service in loaded_services_json:
+for service in loaded_services_xlsx:
     print(service)
-
-plates = set(car.plate for car in loaded_cars_json)
-print(all(service.car_plate in plates for service in loaded_services_json))
