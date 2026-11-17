@@ -1,6 +1,7 @@
 import csv
 import os
-from data.basic.model_dataclasses import Car, Service
+
+from data.basic.model_dataclasses import Car, Service, Mechanic
 
 
 def write_cars_csv(cars: list[Car], path: str, file_name: str = "cars_writer_csv", extension: str = ".csv", heading: bool = True, delimiter: str = ";") -> None:
@@ -30,7 +31,7 @@ def read_cars_csv(path: str) -> list[Car]:
 def write_services_csv(services: list[Service], path: str, file_name: str = "services_writer_csv", extension: str = ".csv", heading: bool = True, delimiter: str = ";") -> None:
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, file_name + extension), "w", newline="", encoding="utf-8") as file:
-        services_writer = csv.DictWriter(file, fieldnames=["id", "car_plate", "date", "description", "cost"], delimiter=delimiter)
+        services_writer = csv.DictWriter(file, fieldnames=["id", "car_plate", "date", "description", "cost", "mechanic_id"], delimiter=delimiter)
         if heading:
             services_writer.writeheader()
         for service in services:
@@ -46,7 +47,32 @@ def read_services_csv(path: str) -> list[Service]:
                 car_plate = row["car_plate"],
                 date = row["date"],
                 description = row["description"],
-                cost = int(row["cost"])
+                cost = int(row["cost"]),
+                mechanic_id = int(row["mechanic_id"])
             )
             services.append(service)
         return services
+
+
+def write_mechanics_csv(mechanics: list[Mechanic], path: str, file_name: str = "mechanics_writer_csv", extension: str = ".csv", heading: bool = True, delimiter: str = ";") -> None:
+    os.makedirs(path, exist_ok=True)
+    with open(os.path.join(path, file_name + extension), "w", newline="", encoding="utf-8") as file:
+        mechanic_writer = csv.DictWriter(file, fieldnames=["id", "name", "experience_years", "specialization"], delimiter=delimiter)
+        if heading:
+            mechanic_writer.writeheader()
+        for mechanic in mechanics:
+            mechanic_writer.writerow(mechanic.__dict__)
+
+def read_mechanics_csv(path: str) -> list[Mechanic]:
+    mechanics = []
+    with open(os.path.join(path, "mechanics_writer_csv.csv"), "r", encoding="utf-8", newline="") as file:
+        mechanic_reader = csv.DictReader(file, delimiter=";")
+        for row in mechanic_reader:
+            mechanic = Mechanic(
+                id = int(row["id"]),
+                name = row["name"],
+                experience_years = int(row["experience_years"]),
+                specialization = row["specialization"]
+            )
+            mechanics.append(mechanic)
+        return mechanics

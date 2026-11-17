@@ -1,6 +1,6 @@
 import json
 import os
-from data.basic.model_dataclasses import Car, Service
+from data.basic.model_dataclasses import Car, Service, Mechanic
 
 
 def write_cars_json(cars: list[Car], path: str, file_name: str = "cars_writer_json", extension: str = ".json", pretty: bool = True) -> None:
@@ -48,7 +48,33 @@ def read_services_json(path: str) -> list[Service]:
                 car_plate = row["car_plate"],
                 date = row["date"],
                 description = row["description"],
-                cost = row["cost"]
+                cost = row["cost"],
+                mechanic_id = row["mechanic_id"]
             )
             services.append(service)
     return services
+
+
+def write_mechanics_json(mechanics: list[Mechanic], path: str, file_name: str = "mechanics_writer_json", extension: str = ".json", pretty: bool = True) -> None:
+    os.makedirs(path, exist_ok=True)
+    with open(os.path.join(path, file_name + extension), "w", encoding="utf-8") as file:
+        json.dump(
+            [mechanic.__dict__ for mechanic in mechanics],
+            file,
+            indent=2 if pretty else None,
+            ensure_ascii=False
+        )
+
+def read_mechanics_json(path: str) -> list[Mechanic]:
+    mechanics = []
+    with open(os.path.join(path, "mechanics_writer_json.json"), "r", encoding="utf-8") as file:
+        data = json.load(file)
+        for row in data:
+            mechanic = Mechanic(
+                id = row["id"],
+                name = row["name"],
+                experience_years = row["experience_years"],
+                specialization = row["specialization"]
+            )
+            mechanics.append(mechanic)
+    return mechanics

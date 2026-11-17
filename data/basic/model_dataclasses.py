@@ -14,3 +14,11 @@ class Service:
     date: str
     description: str
     cost: int
+    mechanic_id: int
+
+@dataclass
+class Mechanic:
+    id: int
+    name: str
+    experience_years: int
+    specialization: str
