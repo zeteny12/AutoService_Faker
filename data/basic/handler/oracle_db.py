@@ -160,7 +160,6 @@ def check_table_counts() -> None:
                 print(f"{table} records: {count}")
 
 
-
 def insert_data(cars: list[Car], services: list[Service], mechanics: list[Mechanic]) -> None:
     with oracledb.connect(
         user=os.environ["ORACLE_USER"],

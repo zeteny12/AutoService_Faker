@@ -5,24 +5,24 @@ from data.basic.handler.xlsx import write_data_xlsx, read_data_xlsx
 from data.basic.handler.oracle_db import test_connection, create_car_table, create_mechanic_table, create_service_table, insert_data, check_table_counts
 
 """Data generator"""
-cars, services, mechanics = generate_data(5)
+cars, services, mechanics = generate_data(20)
 
 
 """Parameterized generator TESTS"""
-test_mechanics = generate_mechanics(5, 20, 30)
+test_mechanics = generate_mechanics(5, 30, 40)
 # for i in test_mechanics:
 #     print(i)
-print("Mechanics experience (30 - 40):", all(20 <= i.experience_years <= 30 for i in test_mechanics))
+print("Mechanics experience (30 - 40):", all(30 <= i.experience_years <= 40 for i in test_mechanics))
 
-test_cars = generate_cars(5, 2000, 2022)
+test_cars = generate_cars(5, 2020, 2022)
 # for i in test_cars:
 #     print(i)
-print("Cars manufacturing year (2020 - 2022):", all(2000 <= i.year <= 2022 for i in test_cars))
+print("Cars manufacturing year (2020 - 2022):", all(2020 <= i.year <= 2022 for i in test_cars))
 
-test_services = generate_services(cars, mechanics, 10_000, 200_000)
+test_services = generate_services(cars, mechanics, 10_000, 20_000)
 # for i in test_services:
 #     print(i)
-print("Service costs (10.000 - 20.000):", all(10_000 <= i.cost <= 200_000 for i in test_services))
+print("Service costs (10.000 - 20.000):", all(10_000 <= i.cost <= 20_000 for i in test_services))
 
 
 """CSV Read / Write TESTING"""
