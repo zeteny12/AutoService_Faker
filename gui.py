@@ -4,8 +4,16 @@ from pathlib import Path
 from tkinter import messagebox, ttk
 
 from data.basic.generator import generate_data
-from data.basic.handler.csv_dict import write_cars_csv, write_mechanics_csv, write_services_csv
-from data.basic.handler.my_json import write_cars_json, write_mechanics_json, write_services_json
+from data.basic.handler.csv_dict import (
+    write_cars_csv,
+    write_mechanics_csv,
+    write_services_csv,
+)
+from data.basic.handler.my_json import (
+    write_cars_json,
+    write_mechanics_json,
+    write_services_json,
+)
 from data.basic.handler.xlsx import write_data_xlsx
 from data.basic.handler import oracle_db
 
@@ -17,12 +25,16 @@ class AutoServiceGUI:
         self.root = root
         self.root.title("AutoService - Data Manager")
         self.root.geometry("610x435")
-        self.root.minsize(560, 520)
+        self.root.minsize(560, 410)
 
         self.cars = []
         self.services = []
         self.mechanics = []
         self.has_data = False
+        self.preview_window: tk.Toplevel | None = None
+        self.preview_notebook: ttk.Notebook | None = None
+        self.preview_trees: dict[str, ttk.Treeview] = {}
+        self.preview_frames: dict[str, ttk.Frame] = {}
 
         self.amount_var = tk.StringVar(value="20")
         self.count_var = tk.StringVar(value="Cars: 0   |   Mechanics: 0   |   Services: 0")
@@ -55,9 +67,15 @@ class AutoServiceGUI:
             input_row, text="Generate Data", command=self.generate, style="Action.TButton"
         ).pack(side="right")
 
-        ttk.Label(generate_frame, textvariable=self.count_var, style="Count.TLabel").pack(
-            anchor="w", pady=(15, 2)
+        # Keep the existing count display, with one extra preview button.
+        count_row = ttk.Frame(generate_frame)
+        count_row.pack(fill="x", pady=(15, 2))
+        ttk.Label(count_row, textvariable=self.count_var, style="Count.TLabel").pack(
+            side="left"
         )
+        ttk.Button(
+            count_row, text="View Generated Data", command=self.show_preview
+        ).pack(side="right")
 
         export_frame = ttk.LabelFrame(container, text="File export", padding=14)
         export_frame.pack(fill="x", pady=(16, 0))
@@ -91,6 +109,15 @@ class AutoServiceGUI:
             anchor="w", pady=(15, 0)
         )
 
+        # Preserve the original layout; only grow the window if content needs it.
+        root.update_idletasks()
+        required_width, required_height = root.winfo_reqwidth(), root.winfo_reqheight()
+        current_width, current_height = root.winfo_width(), root.winfo_height()
+        if required_width > current_width or required_height > current_height:
+            root.geometry(
+                f"{max(current_width, required_width)}x{max(current_height, required_height)}"
+            )
+
     def require_data(self) -> bool:
         if not self.has_data:
             messagebox.showwarning("No data", "Generate data first.", parent=self.root)
@@ -121,6 +148,127 @@ class AutoServiceGUI:
             f"Services: {len(services)}"
         )
         self.status_var.set("New data generated successfully. Ready to export.")
+
+        # If the preview is open, show the newly generated dataset right away.
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.refresh_preview()
+
+    def show_preview(self) -> None:
+        """Display the generated Car, Mechanic and Service objects in a new window."""
+        if not self.require_data():
+            return
+
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.refresh_preview()
+            self.preview_window.lift()
+            self.preview_window.focus_set()
+            return
+
+        self.preview_window = tk.Toplevel(self.root)
+        self.preview_window.title("AutoService - Generated Data")
+        self.preview_window.geometry("940x520")
+        self.preview_window.minsize(650, 340)
+        self.preview_window.protocol("WM_DELETE_WINDOW", self.close_preview)
+
+        container = ttk.Frame(self.preview_window, padding=16)
+        container.pack(fill="both", expand=True)
+        ttk.Label(
+            container, text="Generated data", style="Title.TLabel"
+        ).pack(anchor="w", pady=(0, 12))
+
+        notebook = ttk.Notebook(container)
+        notebook.pack(fill="both", expand=True)
+        self.preview_notebook = notebook
+
+        table_columns = {
+            "Cars": (
+                ("plate", "Plate", 120),
+                ("type", "Type", 280),
+                ("year", "Year", 80),
+                ("automatic", "Automatic", 110),
+            ),
+            "Mechanics": (
+                ("id", "ID", 80),
+                ("name", "Name", 220),
+                ("experience", "Experience (years)", 150),
+                ("specialization", "Specialization", 220),
+            ),
+            "Services": (
+                ("id", "ID", 70),
+                ("plate", "Car plate", 120),
+                ("date", "Date", 120),
+                ("description", "Description", 250),
+                ("cost", "Cost", 120),
+                ("mechanic", "Mechanic ID", 120),
+            ),
+        }
+
+        for name, fields in table_columns.items():
+            tab = ttk.Frame(notebook, padding=8)
+            tab.rowconfigure(0, weight=1)
+            tab.columnconfigure(0, weight=1)
+            notebook.add(tab, text=name)
+
+            tree = ttk.Treeview(
+                tab, columns=[field[0] for field in fields], show="headings"
+            )
+            for key, label, width in fields:
+                tree.heading(key, text=label)
+                tree.column(key, width=width, minwidth=60, stretch=False, anchor="w")
+
+            vertical_scroll = ttk.Scrollbar(tab, orient="vertical", command=tree.yview)
+            horizontal_scroll = ttk.Scrollbar(tab, orient="horizontal", command=tree.xview)
+            tree.configure(
+                yscrollcommand=vertical_scroll.set,
+                xscrollcommand=horizontal_scroll.set,
+            )
+
+            tree.grid(row=0, column=0, sticky="nsew")
+            vertical_scroll.grid(row=0, column=1, sticky="ns")
+            horizontal_scroll.grid(row=1, column=0, sticky="ew")
+            self.preview_trees[name] = tree
+            self.preview_frames[name] = tab
+
+        self.refresh_preview()
+
+    def refresh_preview(self) -> None:
+        """Refresh the table rows without changing the selected preview tab."""
+        if self.preview_notebook is None:
+            return
+
+        rows = {
+            "Cars": [
+                (car.plate, car.type, car.year, "Yes" if car.automatic else "No")
+                for car in self.cars
+            ],
+            "Mechanics": [
+                (mechanic.id, mechanic.name, mechanic.experience_years,
+                 mechanic.specialization)
+                for mechanic in self.mechanics
+            ],
+            "Services": [
+                (service.id, service.car_plate, service.date,
+                 service.description, service.cost, service.mechanic_id)
+                for service in self.services
+            ],
+        }
+        for name, entries in rows.items():
+            tree = self.preview_trees[name]
+            for item in tree.get_children():
+                tree.delete(item)
+            for entry in entries:
+                tree.insert("", "end", values=entry)
+            self.preview_notebook.tab(
+                self.preview_frames[name], text=f"{name} ({len(entries)})"
+            )
+
+    def close_preview(self) -> None:
+        if self.preview_window is not None:
+            self.preview_window.destroy()
+        self.preview_window = None
+        self.preview_notebook = None
+        self.preview_trees.clear()
+        self.preview_frames.clear()
 
     def export_csv(self) -> None:
         if not self.require_data():
