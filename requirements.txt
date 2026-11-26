@@ -1,0 +1,4 @@
+Faker
+faker_vehicle
+openpyxl
+oracledb
